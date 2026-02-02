@@ -43,6 +43,14 @@ export interface User {
   lastName?: string;
 }
 
+export interface Activity {
+  id: string;
+  title: string;
+  description?: string;
+  supplier?: string;
+  status?: number;
+}
+
 export interface AuthRequest {
   clientId: string;
   context: string;

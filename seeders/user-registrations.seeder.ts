@@ -1,17 +1,13 @@
 /**
  * User Registrations Seeder - View a user's activity registrations
  * 
- * Uses the /v2/me/important-activity-registrations endpoint to retrieve
+ * Uses the /api/users/{userId}/registrations endpoint to retrieve
  * activity registrations for a specific user.
  * 
  * Note: This requires a userId to be passed as a parameter.
  */
 
 import type { SeederFunction } from '../types/index.js';
-
-interface UserRegistrationsOptions {
-  userId?: string;
-}
 
 const userRegistrationsSeeder: SeederFunction = async (httpClient, context) => {
   console.log('\n[User Registrations] Fetching activity registrations...');
@@ -26,18 +22,12 @@ const userRegistrationsSeeder: SeederFunction = async (httpClient, context) => {
     
     console.log(`[User Registrations] Fetching registrations for user: ${userId}`);
     
-    // Request body for important registrations
-    const requestBody = {
-      limit: 100,
-      offset: 0
-    };
-    
-    // Make authenticated POST request to get user's registrations
-    await httpClient.post(
-      '/v2/me/important-activity-registrations',
-      requestBody,
+    // Make authenticated GET request to get user's registrations
+    await httpClient.get(
+      `/users/${userId}/registrations`,
+      {},
       (response, context) => {
-        const registrations = response.data;
+        const registrations = response.data || [];
         
         console.log(`\n[User Registrations] Found ${registrations.length} registration(s):`);
         
@@ -45,12 +35,16 @@ const userRegistrationsSeeder: SeederFunction = async (httpClient, context) => {
           console.log('  No registrations found for this user.');
         } else {
           registrations.forEach((reg: any, index: number) => {
-            console.log(`\n  ${index + 1}. Activity: ${reg.activityName || reg.activityTitle || reg.activityId || 'Unknown'}`);
-            if (reg.id) console.log(`     Registration ID: ${reg.id}`);
+            // The title should be in the response already
+            const activityTitle = reg.title || reg.activityTitle || reg.activityName || reg.activityId || 'Unknown';
+            
+            console.log(`\n  ${index + 1}. Activity: ${activityTitle}`);
+            if (reg.id || reg.registrationId) console.log(`     Registration ID: ${reg.id || reg.registrationId}`);
             if (reg.status !== undefined) console.log(`     Status: ${reg.status}`);
             if (reg.progress !== undefined) console.log(`     Progress: ${reg.progress}%`);
             if (reg.startDate) console.log(`     Start Date: ${reg.startDate}`);
             if (reg.endDate) console.log(`     End Date: ${reg.endDate}`);
+            if (reg.completedAt) console.log(`     Completed At: ${reg.completedAt}`);
           });
         }
         
