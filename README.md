@@ -2,16 +2,18 @@
 
 A modular database seeding framework that uses your backend API endpoints instead of direct database connections. Works like Postman with support for callbacks to store variables (like bearer tokens) across seeder executions.
 
-Built with **TypeScript** for type safety and better developer experience.
+Built with **TypeScript** for type safety and better developer experience. Features both an **interactive CLI mode** and a **one-shot automated mode**.
 
 ## Features
 
+- **Interactive CLI**: Run commands interactively with persistent session state
+- **Session Persistence**: Keep authentication tokens and context between actions
 - **Postman-like Callbacks**: Execute code after API requests to store tokens, IDs, and other data
 - **Automatic Token Management**: Bearer tokens are automatically injected into authenticated requests
 - **Modular Architecture**: Separate seeders for different entities
 - **TypeScript**: Full type safety with interfaces and type definitions
 - **Environment Configuration**: Easy configuration via environment variables
-- **Sequential Execution**: Seeders run in order with proper authentication flow
+- **Flexible Execution**: Interactive mode or one-shot automation
 
 ## Project Structure
 
@@ -26,11 +28,18 @@ seeder/
 ├── lib/
 │   ├── http-client.ts          # HTTP client with callback support
 │   └── seeder-context.ts       # Variable storage (like Postman environment)
+├── cli/
+│   ├── session.ts              # Session management
+│   ├── menu.ts                 # Interactive menu
+│   └── actions.ts              # Action handlers
 ├── seeders/
 │   ├── domain.seeder.ts        # Domain/client ID (runs first)
 │   ├── auth.seeder.ts          # Authentication (runs second)
-│   └── users.seeder.ts         # Example entity seeder
-└── index.ts                     # Main orchestrator
+│   └── activity/               # Activity seeders
+│       ├── activity.seeder.ts  # Activity creation logic
+│       └── data.ts             # Activity data
+├── index.ts                     # Interactive CLI
+└── seed.ts                      # One-shot automated mode
 ```
 
 ## Installation
@@ -41,61 +50,126 @@ seeder/
 npm install
 ```
 
-2. Configure your API settings in `config/environment.ts` or use environment variables:
+2. Configure your API settings in `config/environment.ts` or create a `.env` file:
 
 ```bash
-export API_BASE_URL=https://ictivity.test.rakoo.com/api
-export ADMIN_USERNAME=arjan+3@rakoo.com
-export ADMIN_PASSWORD=your-password
-export AUTH_CONTEXT=admin
-export AUTH_PLATFORM=web
+API_BASE_URL=http://academy.dev.rakoo.com:3000/api
+ADMIN_USERNAME=superadmin@rakoo.com
+ADMIN_PASSWORD=your-password
+AUTH_CONTEXT=admin
+AUTH_PLATFORM=web
+REJECT_UNAUTHORIZED=false  # For local dev with self-signed certs
+VERBOSE=true
 ```
 
 ## Usage
 
-Run the seeder:
+### Interactive Mode (Recommended)
+
+Start the interactive CLI:
+
+```bash
+npm start
+```
+
+This will launch an interactive menu where you can:
+
+- **Authenticate** - Get client ID and login (session persists)
+- **Create Activities** - Create sample activities (requires auth)
+- **View Session Status** - Check authentication state and stored tokens
+- **Exit** - Gracefully exit the application
+
+**Key Benefits:**
+
+- Session state (tokens, client ID) persists between actions
+- No need to re-authenticate for each operation
+- Visual feedback and error handling
+- Easy to use for manual testing and development
+
+### One-Shot Mode (Automated)
+
+Run all seeders in sequence and exit (useful for CI/CD):
 
 ```bash
 npm run seed
 ```
 
-With verbose mode:
+This will:
 
-```bash
-VERBOSE=true npm run seed
-```
+1. Authenticate (domain + auth)
+2. Create activities
+3. Exit
 
-Or during development with watch mode:
+### Development Mode
+
+Run with auto-restart on file changes:
 
 ```bash
 npm run dev
 ```
 
-Build to JavaScript (optional):
+### Build (Optional)
+
+Compile TypeScript to JavaScript:
 
 ```bash
 npm run build
 ```
 
-## How It Works
+## Interactive CLI Example
 
-### 1. Authentication Flow
+```
+$ npm start
 
-The `auth.seeder.js` runs first and:
+═══════════════════════════════════════════════════════════
+  Database Seeder - Interactive CLI
+═══════════════════════════════════════════════════════════
+  API: http://academy.dev.rakoo.com:3000/api
+═══════════════════════════════════════════════════════════
 
-- Calls your login endpoint
-- Extracts the bearer token from the response
-- Stores it in the context using a callback
+? What would you like to do?
+❯ 🔐 Authenticate (Get Client ID + Login)
+  📝 Create Activities (Requires authentication)
+  📊 View Session Status
+  🚪 Exit
 
-```javascript
-await httpClient.post(
-  "/auth/login",
-  { username: "admin", password: "admin123" },
-  (response, context) => {
-    // Store token from response
-    context.set("bearerToken", response.data.token);
-  }
-);
+> Authenticate
+
+────────────────────────────────────────────────────────────
+  Authentication
+────────────────────────────────────────────────────────────
+
+[Domain Seeder] Fetching client ID...
+[Context] Set clientId: f10cae5b-5233-38b5-beea-126e8a1fca5a
+[Domain Seeder] ✓ Client ID retrieved successfully
+
+[Auth Seeder] Starting authentication...
+[Auth Seeder] Using client ID: f10cae5b-5233-38b5-beea-126e8a1fca5a
+[HTTP] POST /authenticate - 200
+[Context] Set bearerToken: eyJhbGciOiJIUzUxMiJ9...
+[Auth Seeder] ✓ Authentication successful
+
+✓ Authentication completed successfully!
+
+? What would you like to do?
+  🔐 Authenticate (Get Client ID + Login)
+❯ 📝 Create Activities
+  📊 View Session Status
+  🚪 Exit
+
+> Create Activities
+
+────────────────────────────────────────────────────────────
+  Create Activities
+────────────────────────────────────────────────────────────
+
+[Activity Seeder] Starting activity creation...
+[Activity Seeder] Creating activity: Introduction to TypeScript
+[HTTP] POST /v2/activities - 201
+[Activity Seeder] ✓ Created activity: Introduction to TypeScript (ID: abc123...)
+...
+
+✓ Activities created successfully!
 ```
 
 ### 2. Subsequent Seeders
