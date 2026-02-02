@@ -10,6 +10,7 @@ export interface SeederConfig {
   };
   timeout: number;
   verbose: boolean;
+  rejectUnauthorized: boolean;
 }
 
 export interface SeederContext {

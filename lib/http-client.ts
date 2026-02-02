@@ -6,6 +6,7 @@
  */
 
 import axios, { type AxiosInstance, type AxiosResponse, type AxiosRequestConfig } from 'axios';
+import https from 'https';
 import type { SeederContext, SeederCallback, SeederConfig, HttpClient as IHttpClient } from '../types/index.js';
 
 class HttpClient implements IHttpClient {
@@ -17,13 +18,19 @@ class HttpClient implements IHttpClient {
     this.context = context;
     this.config = config;
     
+    // Create HTTPS agent with SSL configuration
+    const httpsAgent = new https.Agent({
+      rejectUnauthorized: config.rejectUnauthorized
+    });
+    
     // Create axios instance with base configuration
     this.client = axios.create({
       baseURL,
       timeout: config.timeout || 30000,
       headers: {
         'Content-Type': 'application/json'
-      }
+      },
+      httpsAgent: httpsAgent
     });
 
     // Request interceptor to inject bearer token

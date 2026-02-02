@@ -11,7 +11,7 @@ import type { SeederConfig } from '../types/index.js';
 
 const environment: SeederConfig = {
   // Base URL for all API requests
-  apiBaseUrl: process.env.API_BASE_URL || 'http://academy.dev.rakoo.com:3000/api',
+  apiBaseUrl: process.env.API_BASE_URL || 'https://academy.dev.rakoo.com:3000/api',
   
   // Credentials for initial authentication
   credentials: {
@@ -23,7 +23,10 @@ const environment: SeederConfig = {
   
   // Optional: Add any other configuration here
   timeout: parseInt(process.env.REQUEST_TIMEOUT || '30000', 10), // 30 seconds
-  verbose: process.env.VERBOSE === 'true' || false
+  verbose: process.env.VERBOSE === 'true' || false,
+  
+  // SSL certificate validation (set to false for local development with self-signed certs)
+  rejectUnauthorized: process.env.REJECT_UNAUTHORIZED !== 'false'
 };
 
 export default environment;
