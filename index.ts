@@ -14,7 +14,7 @@ import type { SeederDefinition } from './types/index.js';
 // Import seeders
 import domainSeeder from './seeders/domain.seeder.js';
 import authSeeder from './seeders/auth.seeder.js';
-// import activitySeeder from './seeders/activity.seeder.js';
+import activitySeeder from './seeders/activity/activity.seeder.js';
 
 /**
  * Main seeding function
@@ -36,7 +36,7 @@ async function seed(): Promise<void> {
   const seeders: SeederDefinition[] = [
     { name: 'Domain', fn: domainSeeder },
     { name: 'Auth', fn: authSeeder },
-    // { name: 'Activity', fn: activitySeeder },
+    { name: 'Activity', fn: activitySeeder },
 
   ];
   

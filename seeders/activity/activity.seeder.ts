@@ -5,29 +5,11 @@
  * Activities are created with random titles and minimal required fields.
  */
 
-import type { SeederFunction } from '../types/index.js';
+import type { SeederFunction } from '../../types/index.js';
+import { activities } from './data.js';
 
 const activitySeeder: SeederFunction = async (httpClient, context) => {
   console.log('\n[Activity Seeder] Starting activity creation...');
-  
-  // Sample activities to seed with random titles
-  const activities = [
-    {
-      title: 'Introduction to TypeScript',
-      description: 'Learn the basics of TypeScript programming',
-      supplier: 'Rakoo Learning'
-    },
-    {
-      title: 'Advanced React Patterns',
-      description: 'Master advanced React development patterns',
-      supplier: 'Rakoo Learning'
-    },
-    {
-      title: 'Database Design Fundamentals',
-      description: 'Learn how to design efficient database schemas',
-      supplier: 'Rakoo Learning'
-    }
-  ];
   
   try {
     const createdActivities: any[] = [];
@@ -41,18 +23,12 @@ const activitySeeder: SeederFunction = async (httpClient, context) => {
           title: activityData.title,
           description: activityData.description,
           supplier: activityData.supplier,
-          status: 0, // Draft status
-          baseLanguage: 'nl', // Dutch as base language
-          enabledLanguages: ['nl'], // Only Dutch enabled
+          status: 1, // Draft status
+          baseLanguage: 'DUTCH', 
+          enabledLanguages: ['DUTCH'],
           durationLimited: false,
-          system: 'LEARN', // Learn system
-          type: 'CLASSIC', // Classic activity type
-          image: {
-            type: 'NULL' // No image
-          },
-          source: {
-            type: 'INTERNAL' // Internal source
-          }
+          system: 'NONE', // Learn system
+          type: 'MICRO_LEARNING', // Classic activity type
         }
       };
       
