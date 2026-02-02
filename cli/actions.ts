@@ -223,6 +223,12 @@ export async function registerUserForActivityAction(session: CliSession): Promis
       value: activity.id
     }));
     
+    // Add option to register for all activities
+    activityChoices.unshift({
+      name: '✅ Register for ALL Activities',
+      value: 'ALL'
+    });
+    
     activityChoices.push({
       name: '← Back to Main Menu',
       value: 'back'
@@ -245,19 +251,46 @@ export async function registerUserForActivityAction(session: CliSession): Promis
       return false;
     }
     
-    // Store selected activity ID in context
-    context.set('selectedActivityId', selectedActivityId);
-    
-    // Find the selected activity for display
-    const selectedActivity = activities.find(a => a.id === selectedActivityId);
-    if (selectedActivity) {
-      console.log(`\nSelected activity: ${selectedActivity.title}`);
+    // Step 5: Register the user for the activity/activities
+    if (selectedActivityId === 'ALL') {
+      // Register for all activities
+      console.log(`\nRegistering user for all ${activities.length} activities...`);
+      
+      let successCount = 0;
+      let failureCount = 0;
+      
+      for (const activity of activities) {
+        try {
+          console.log(`\n  Registering for: ${activity.title}`);
+          context.set('selectedActivityId', activity.id);
+          await registerUserActivitySeeder(httpClient, context);
+          successCount++;
+        } catch (error) {
+          console.error(`  ✗ Failed to register for ${activity.title}`);
+          failureCount++;
+        }
+      }
+      
+      console.log(`\n✓ Registration complete!`);
+      console.log(`  Successful: ${successCount}`);
+      if (failureCount > 0) {
+        console.log(`  Failed: ${failureCount}`);
+      }
+    } else {
+      // Register for single activity
+      // Store selected activity ID in context
+      context.set('selectedActivityId', selectedActivityId);
+      
+      // Find the selected activity for display
+      const selectedActivity = activities.find(a => a.id === selectedActivityId);
+      if (selectedActivity) {
+        console.log(`\nSelected activity: ${selectedActivity.title}`);
+      }
+      
+      await registerUserActivitySeeder(httpClient, context);
+      
+      console.log('\n✓ User successfully registered for activity!');
     }
-    
-    // Step 5: Register the user for the activity
-    await registerUserActivitySeeder(httpClient, context);
-    
-    console.log('\n✓ User successfully registered for activity!');
     
     // Pause before returning to menu
     await inquirer.prompt([
