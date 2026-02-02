@@ -21,6 +21,20 @@ async function startCli(): Promise<void> {
   // Display welcome message
   displayWelcome(config.apiBaseUrl);
   
+  // Automatically authenticate on startup
+  console.log('Authenticating...\n');
+  try {
+    await handleAction('auth', session);
+    if (!session.isAuthenticated()) {
+      console.error('\n✗ Authentication failed. Please check your credentials.');
+      process.exit(1);
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('\n✗ Authentication failed:', errorMessage);
+    process.exit(1);
+  }
+  
   // Main interactive loop
   while (true) {
     try {
