@@ -17,40 +17,30 @@ export interface SeederContext {
   set(key: string, value: any): void;
   get(key: string): any;
   has(key: string): boolean;
-  unset(key: string): void;
-  clear(): void;
   getAll(): Record<string, any>;
+  clear(): void;
 }
-
-export type SeederCallback = (
-  response: AxiosResponse,
-  context: SeederContext
-) => void;
 
 export interface HttpClient {
-  get(url: string, config?: any, callback?: SeederCallback | null): Promise<AxiosResponse>;
-  post(url: string, data?: any, callbackOrConfig?: SeederCallback | any | null, callback?: SeederCallback | null): Promise<AxiosResponse>;
-  put(url: string, data?: any, callbackOrConfig?: SeederCallback | any | null, callback?: SeederCallback | null): Promise<AxiosResponse>;
-  patch(url: string, data?: any, callbackOrConfig?: SeederCallback | any | null, callback?: SeederCallback | null): Promise<AxiosResponse>;
-  delete(url: string, config?: any, callback?: SeederCallback | null): Promise<AxiosResponse>;
+  get(url: string, params?: Record<string, any>, callback?: SeederCallback): Promise<AxiosResponse>;
+  post(url: string, data: any, callback?: SeederCallback): Promise<AxiosResponse>;
 }
 
-export type SeederFunction = (
-  httpClient: HttpClient,
-  context: SeederContext
-) => Promise<void>;
+export type SeederFunction = (httpClient: HttpClient, context: SeederContext) => Promise<void>;
 
 export interface SeederDefinition {
   name: string;
   fn: SeederFunction;
 }
 
+export type SeederCallback = (response: AxiosResponse, context: SeederContext) => void;
+
 export interface User {
+  id: string;
   username: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  role: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 export interface AuthRequest {

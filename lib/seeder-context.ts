@@ -21,10 +21,16 @@ class SeederContext implements ISeederContext {
    */
   set(key: string, value: any): void {
     this.variables[key] = value;
-    console.log(`[Context] Set ${key}:`, typeof value === 'string' && value.length > 50 
-      ? value.substring(0, 50) + '...' 
-      : value
-    );
+    
+    // Skip logging for arrays (like usersList) to avoid cluttering console
+    if (Array.isArray(value)) {
+      console.log(`[Context] Set ${key}: [Array with ${value.length} item(s)]`);
+    } else {
+      console.log(`[Context] Set ${key}:`, typeof value === 'string' && value.length > 50 
+        ? value.substring(0, 50) + '...' 
+        : value
+      );
+    }
   }
 
   /**

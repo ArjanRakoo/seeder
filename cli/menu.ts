@@ -6,7 +6,7 @@
 
 import inquirer from 'inquirer';
 
-export type MenuAction = 'auth' | 'create_activity' | 'view_status' | 'exit';
+export type MenuAction = 'auth' | 'create_activity' | 'get_registrations' | 'view_status' | 'exit';
 
 interface MenuChoice {
   name: string;
@@ -20,12 +20,17 @@ interface MenuChoice {
 export async function showMainMenu(isAuthenticated: boolean): Promise<MenuAction> {
   const choices: MenuChoice[] = [
     { 
-      name: '🔐 Authenticate (Get Client ID + Login)', 
+      name: '🔐 Authenticate', 
       value: 'auth' 
     },
     { 
       name: '📝 Create Activities', 
       value: 'create_activity',
+      disabled: !isAuthenticated ? 'Requires authentication' : false
+    },
+    { 
+      name: '📋 Get User Registrations', 
+      value: 'get_registrations',
       disabled: !isAuthenticated ? 'Requires authentication' : false
     },
     { 
