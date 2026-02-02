@@ -10,7 +10,7 @@
   "keywords": ["seeder", "database", "api"],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "axios": "^1.6.0",
     "dotenv": "^16.3.0"

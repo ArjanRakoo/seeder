@@ -5,15 +5,15 @@
  * The auth seeder runs first to obtain a bearer token, then other seeders follow.
  */
 
-require('dotenv').config();
-
-const SeederContext = require('./lib/seeder-context');
-const HttpClient = require('./lib/http-client');
-const config = require('./config/environment');
+import 'dotenv/config';
+import SeederContext from './lib/seeder-context.js';
+import HttpClient from './lib/http-client.js';
+import config from './config/environment.js';
 
 // Import seeders
-const authSeeder = require('./seeders/auth.seeder');
-const usersSeeder = require('./seeders/users.seeder');
+import domainSeeder from './seeders/domain.seeder.js';
+import authSeeder from './seeders/auth.seeder.js';
+// import usersSeeder from './seeders/users.seeder.js';
 
 /**
  * Main seeding function
@@ -31,10 +31,11 @@ async function seed() {
   const httpClient = new HttpClient(config.apiBaseUrl, context, config);
   
   // Define seeders in execution order
-  // Auth seeder must run first to obtain bearer token
+  // Domain seeder runs first to get client ID, then auth seeder, then others
   const seeders = [
+    { name: 'Domain', fn: domainSeeder },
     { name: 'Auth', fn: authSeeder },
-    { name: 'Users', fn: usersSeeder },
+    // { name: 'Users', fn: usersSeeder },
     // Add more seeders here as needed
     // { name: 'Products', fn: productsSeeder },
     // { name: 'Orders', fn: ordersSeeder },
@@ -67,9 +68,7 @@ async function seed() {
       console.log('\nContext Summary:');
       const vars = context.getAll();
       Object.keys(vars).forEach(key => {
-        if (key !== 'bearerToken') { // Don't display sensitive token
-          console.log(`  ${key}:`, vars[key]);
-        }
+        console.log(`  ${key}:`, vars[key]);
       });
     }
     

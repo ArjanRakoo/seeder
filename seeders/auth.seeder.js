@@ -5,38 +5,38 @@
  * The bearer token is stored in the context for use by subsequent seeders.
  */
 
-module.exports = async function authSeeder(httpClient, context) {
+import config from '../config/environment.js';
+
+export default async function authSeeder(httpClient, context) {
   console.log('\n[Auth Seeder] Starting authentication...');
   
-  const config = require('../config/environment');
-  
   try {
-    // Call login endpoint
-    // Adjust the endpoint path and request/response structure to match your API
+    // Get the client ID from context (set by domain seeder)
+    const clientId = context.get('clientId');
+    
+    if (!clientId) {
+      throw new Error('Client ID not found in context. Domain seeder must run first.');
+    }
+    
+    console.log(`[Auth Seeder] Using client ID: ${clientId}`);
+    
+    // Call authenticate endpoint with required body structure
     await httpClient.post(
-      '/auth/login',
+      '/authenticate',
       {
-        username: config.credentials.username,
-        password: config.credentials.password
+        clientId: clientId,
+        context: config.credentials.context,
+        password: config.credentials.password,
+        platform: config.credentials.platform,
+        username: config.credentials.username
       },
       (response, context) => {
-        // Callback to store the bearer token
-        // Adjust this based on where your API returns the token
-        
-        // Option 1: Token in response body
-        if (response.data.token) {
-          context.set('bearerToken', response.data.token);
-        }
-        
-        // Option 2: Token in response body with different key
-        if (response.data.access_token) {
-          context.set('bearerToken', response.data.access_token);
-        }
-        
-        // Option 3: Token in Authorization header
+        // Extract bearer token from Authorization header
         if (response.headers.authorization) {
           const token = response.headers.authorization.replace('Bearer ', '');
           context.set('bearerToken', token);
+        } else {
+          throw new Error('Authorization header not found in response');
         }
         
         // Store any other useful data from the response
@@ -52,7 +52,7 @@ module.exports = async function authSeeder(httpClient, context) {
     
     // Verify token was stored
     if (!context.has('bearerToken')) {
-      throw new Error('Failed to extract bearer token from login response. Please check the callback logic.');
+      throw new Error('Failed to extract bearer token from authentication response.');
     }
     
     console.log('[Auth Seeder] ✓ Authentication successful');
@@ -61,4 +61,4 @@ module.exports = async function authSeeder(httpClient, context) {
     console.error('[Auth Seeder] ✗ Authentication failed:', error.message);
     throw error; // Re-throw to stop the seeding process
   }
-};
+}

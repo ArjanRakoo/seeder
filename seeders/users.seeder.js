@@ -5,7 +5,7 @@
  * from the auth seeder and makes authenticated API calls.
  */
 
-module.exports = async function usersSeeder(httpClient, context) {
+export default async function usersSeeder(httpClient, context) {
   console.log('\n[Users Seeder] Starting users creation...');
   
   // Sample users to seed
@@ -71,4 +71,4 @@ module.exports = async function usersSeeder(httpClient, context) {
     // throw error; // Uncomment to stop on error
     console.log('[Users Seeder] Continuing despite errors...');
   }
-};
+}

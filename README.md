@@ -2,11 +2,14 @@
 
 A modular database seeding framework that uses your backend API endpoints instead of direct database connections. Works like Postman with support for callbacks to store variables (like bearer tokens) across seeder executions.
 
+Built with modern ES modules (`import`/`export`) for clean, maintainable code.
+
 ## Features
 
 - **Postman-like Callbacks**: Execute code after API requests to store tokens, IDs, and other data
 - **Automatic Token Management**: Bearer tokens are automatically injected into authenticated requests
 - **Modular Architecture**: Separate seeders for different entities
+- **Modern ES Modules**: Uses native `import`/`export` syntax
 - **Environment Configuration**: Easy configuration via environment variables
 - **Sequential Execution**: Seeders run in order with proper authentication flow
 
@@ -114,7 +117,7 @@ if (context.has('bearerToken')) { ... }
 1. Create a new file in `seeders/` (e.g., `products.seeder.js`):
 
 ```javascript
-module.exports = async function productsSeeder(httpClient, context) {
+export default async function productsSeeder(httpClient, context) {
   console.log("\n[Products Seeder] Starting...");
 
   const products = [
@@ -128,13 +131,13 @@ module.exports = async function productsSeeder(httpClient, context) {
       context.set(`product_${product.name}_id`, response.data.id);
     });
   }
-};
+}
 ```
 
 2. Import and add it to the seeders list in `index.js`:
 
 ```javascript
-const productsSeeder = require("./seeders/products.seeder");
+import productsSeeder from "./seeders/products.seeder.js";
 
 const seeders = [
   { name: "Auth", fn: authSeeder },
