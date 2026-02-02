@@ -1,18 +1,19 @@
 /**
  * Auth Seeder - Handles authentication and stores bearer token
  * 
- * This seeder runs first to authenticate with the backend API.
+ * This seeder runs after domain seeder to authenticate with the backend API.
  * The bearer token is stored in the context for use by subsequent seeders.
  */
 
 import config from '../config/environment.js';
+import type { SeederFunction, AuthRequest } from '../types/index.js';
 
-export default async function authSeeder(httpClient, context) {
+const authSeeder: SeederFunction = async (httpClient, context) => {
   console.log('\n[Auth Seeder] Starting authentication...');
   
   try {
     // Get the client ID from context (set by domain seeder)
-    const clientId = context.get('clientId');
+    const clientId = context.get('clientId') as string;
     
     if (!clientId) {
       throw new Error('Client ID not found in context. Domain seeder must run first.');
@@ -20,16 +21,19 @@ export default async function authSeeder(httpClient, context) {
     
     console.log(`[Auth Seeder] Using client ID: ${clientId}`);
     
+    // Prepare authentication request
+    const authRequest: AuthRequest = {
+      clientId: clientId,
+      context: config.credentials.context,
+      password: config.credentials.password,
+      platform: config.credentials.platform,
+      username: config.credentials.username
+    };
+    
     // Call authenticate endpoint with required body structure
     await httpClient.post(
       '/authenticate',
-      {
-        clientId: clientId,
-        context: config.credentials.context,
-        password: config.credentials.password,
-        platform: config.credentials.platform,
-        username: config.credentials.username
-      },
+      authRequest,
       (response, context) => {
         // Extract bearer token from Authorization header
         if (response.headers.authorization) {
@@ -58,7 +62,10 @@ export default async function authSeeder(httpClient, context) {
     console.log('[Auth Seeder] ✓ Authentication successful');
     
   } catch (error) {
-    console.error('[Auth Seeder] ✗ Authentication failed:', error.message);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[Auth Seeder] ✗ Authentication failed:', errorMessage);
     throw error; // Re-throw to stop the seeding process
   }
-}
+};
+
+export default authSeeder;

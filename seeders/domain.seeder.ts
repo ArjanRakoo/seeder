@@ -6,7 +6,9 @@
  * for use by subsequent seeders.
  */
 
-export default async function domainSeeder(httpClient, context) {
+import type { SeederFunction } from '../types/index.js';
+
+const domainSeeder: SeederFunction = async (httpClient, context) => {
   console.log('\n[Domain Seeder] Fetching client ID...');
   
   try {
@@ -32,7 +34,10 @@ export default async function domainSeeder(httpClient, context) {
     console.log('[Domain Seeder] ✓ Client ID retrieved successfully');
     
   } catch (error) {
-    console.error('[Domain Seeder] ✗ Failed to fetch client ID:', error.message);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[Domain Seeder] ✗ Failed to fetch client ID:', errorMessage);
     throw error; // Re-throw to stop the seeding process
   }
-}
+};
+
+export default domainSeeder;

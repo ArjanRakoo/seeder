@@ -5,10 +5,15 @@
  * Postman-like callbacks to execute code after requests complete.
  */
 
-import axios from 'axios';
+import axios, { type AxiosInstance, type AxiosResponse, type AxiosRequestConfig } from 'axios';
+import type { SeederContext, SeederCallback, SeederConfig, HttpClient as IHttpClient } from '../types/index.js';
 
-class HttpClient {
-  constructor(baseURL, context, config = {}) {
+class HttpClient implements IHttpClient {
+  private context: SeederContext;
+  private config: SeederConfig;
+  private client: AxiosInstance;
+
+  constructor(baseURL: string, context: SeederContext, config: SeederConfig) {
     this.context = context;
     this.config = config;
     
@@ -39,13 +44,13 @@ class HttpClient {
     this.client.interceptors.response.use(
       (response) => {
         if (this.config.verbose) {
-          console.log(`[HTTP] ${response.config.method.toUpperCase()} ${response.config.url} - ${response.status}`);
+          console.log(`[HTTP] ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`);
         }
         return response;
       },
       (error) => {
         if (error.response) {
-          console.error(`[HTTP Error] ${error.config.method.toUpperCase()} ${error.config.url} - ${error.response.status}`);
+          console.error(`[HTTP Error] ${error.config.method?.toUpperCase()} ${error.config.url} - ${error.response.status}`);
           console.error('[HTTP Error] Response:', error.response.data);
         } else {
           console.error('[HTTP Error]', error.message);
@@ -59,7 +64,7 @@ class HttpClient {
    * Execute a callback function after the request completes
    * @private
    */
-  _executeCallback(response, callback) {
+  private _executeCallback(response: AxiosResponse, callback?: SeederCallback | null): void {
     if (callback && typeof callback === 'function') {
       try {
         callback(response, this.context);
@@ -71,11 +76,11 @@ class HttpClient {
 
   /**
    * Make a GET request
-   * @param {string} url - Endpoint URL
-   * @param {object} config - Axios config options
-   * @param {function} callback - Callback function (response, context) => {}
+   * @param url - Endpoint URL
+   * @param config - Axios config options
+   * @param callback - Callback function (response, context) => {}
    */
-  async get(url, config = {}, callback = null) {
+  async get(url: string, config: AxiosRequestConfig = {}, callback: SeederCallback | null = null): Promise<AxiosResponse> {
     const response = await this.client.get(url, config);
     this._executeCallback(response, callback);
     return response;
@@ -83,19 +88,19 @@ class HttpClient {
 
   /**
    * Make a POST request
-   * @param {string} url - Endpoint URL
-   * @param {object} data - Request body
-   * @param {function|object} callbackOrConfig - Callback function or axios config
-   * @param {function} callback - Callback function if config was provided
+   * @param url - Endpoint URL
+   * @param data - Request body
+   * @param callbackOrConfig - Callback function or axios config
+   * @param callback - Callback function if config was provided
    */
-  async post(url, data = {}, callbackOrConfig = null, callback = null) {
-    let config = {};
-    let finalCallback = null;
+  async post(url: string, data: any = {}, callbackOrConfig: SeederCallback | AxiosRequestConfig | null = null, callback: SeederCallback | null = null): Promise<AxiosResponse> {
+    let config: AxiosRequestConfig = {};
+    let finalCallback: SeederCallback | null = null;
 
     // Handle overloaded parameters
     if (typeof callbackOrConfig === 'function') {
       finalCallback = callbackOrConfig;
-    } else if (typeof callbackOrConfig === 'object') {
+    } else if (callbackOrConfig && typeof callbackOrConfig === 'object') {
       config = callbackOrConfig;
       finalCallback = callback;
     }
@@ -107,18 +112,18 @@ class HttpClient {
 
   /**
    * Make a PUT request
-   * @param {string} url - Endpoint URL
-   * @param {object} data - Request body
-   * @param {function|object} callbackOrConfig - Callback function or axios config
-   * @param {function} callback - Callback function if config was provided
+   * @param url - Endpoint URL
+   * @param data - Request body
+   * @param callbackOrConfig - Callback function or axios config
+   * @param callback - Callback function if config was provided
    */
-  async put(url, data = {}, callbackOrConfig = null, callback = null) {
-    let config = {};
-    let finalCallback = null;
+  async put(url: string, data: any = {}, callbackOrConfig: SeederCallback | AxiosRequestConfig | null = null, callback: SeederCallback | null = null): Promise<AxiosResponse> {
+    let config: AxiosRequestConfig = {};
+    let finalCallback: SeederCallback | null = null;
 
     if (typeof callbackOrConfig === 'function') {
       finalCallback = callbackOrConfig;
-    } else if (typeof callbackOrConfig === 'object') {
+    } else if (callbackOrConfig && typeof callbackOrConfig === 'object') {
       config = callbackOrConfig;
       finalCallback = callback;
     }
@@ -130,18 +135,18 @@ class HttpClient {
 
   /**
    * Make a PATCH request
-   * @param {string} url - Endpoint URL
-   * @param {object} data - Request body
-   * @param {function|object} callbackOrConfig - Callback function or axios config
-   * @param {function} callback - Callback function if config was provided
+   * @param url - Endpoint URL
+   * @param data - Request body
+   * @param callbackOrConfig - Callback function or axios config
+   * @param callback - Callback function if config was provided
    */
-  async patch(url, data = {}, callbackOrConfig = null, callback = null) {
-    let config = {};
-    let finalCallback = null;
+  async patch(url: string, data: any = {}, callbackOrConfig: SeederCallback | AxiosRequestConfig | null = null, callback: SeederCallback | null = null): Promise<AxiosResponse> {
+    let config: AxiosRequestConfig = {};
+    let finalCallback: SeederCallback | null = null;
 
     if (typeof callbackOrConfig === 'function') {
       finalCallback = callbackOrConfig;
-    } else if (typeof callbackOrConfig === 'object') {
+    } else if (callbackOrConfig && typeof callbackOrConfig === 'object') {
       config = callbackOrConfig;
       finalCallback = callback;
     }
@@ -153,11 +158,11 @@ class HttpClient {
 
   /**
    * Make a DELETE request
-   * @param {string} url - Endpoint URL
-   * @param {object} config - Axios config options
-   * @param {function} callback - Callback function (response, context) => {}
+   * @param url - Endpoint URL
+   * @param config - Axios config options
+   * @param callback - Callback function (response, context) => {}
    */
-  async delete(url, config = {}, callback = null) {
+  async delete(url: string, config: AxiosRequestConfig = {}, callback: SeederCallback | null = null): Promise<AxiosResponse> {
     const response = await this.client.delete(url, config);
     this._executeCallback(response, callback);
     return response;

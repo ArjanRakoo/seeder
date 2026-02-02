@@ -2,17 +2,24 @@
   "name": "seeder",
   "version": "1.0.0",
   "description": "Database seeder using backend API endpoints",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "seed": "node index.js",
+    "seed": "tsx index.ts",
+    "build": "tsc",
+    "dev": "tsx watch index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["seeder", "database", "api"],
+  "keywords": ["seeder", "database", "api", "typescript"],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
     "axios": "^1.6.0",
     "dotenv": "^16.3.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "tsx": "^4.7.0",
+    "@types/node": "^20.10.0"
   }
 }

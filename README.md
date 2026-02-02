@@ -2,14 +2,14 @@
 
 A modular database seeding framework that uses your backend API endpoints instead of direct database connections. Works like Postman with support for callbacks to store variables (like bearer tokens) across seeder executions.
 
-Built with modern ES modules (`import`/`export`) for clean, maintainable code.
+Built with **TypeScript** for type safety and better developer experience.
 
 ## Features
 
 - **Postman-like Callbacks**: Execute code after API requests to store tokens, IDs, and other data
 - **Automatic Token Management**: Bearer tokens are automatically injected into authenticated requests
 - **Modular Architecture**: Separate seeders for different entities
-- **Modern ES Modules**: Uses native `import`/`export` syntax
+- **TypeScript**: Full type safety with interfaces and type definitions
 - **Environment Configuration**: Easy configuration via environment variables
 - **Sequential Execution**: Seeders run in order with proper authentication flow
 
@@ -18,15 +18,19 @@ Built with modern ES modules (`import`/`export`) for clean, maintainable code.
 ```
 seeder/
 ├── package.json                 # Dependencies and scripts
+├── tsconfig.json                # TypeScript configuration
+├── types/
+│   └── index.ts                # Type definitions
 ├── config/
-│   └── environment.js          # API configuration
+│   └── environment.ts          # API configuration
 ├── lib/
-│   ├── http-client.js          # HTTP client with callback support
-│   └── seeder-context.js       # Variable storage (like Postman environment)
+│   ├── http-client.ts          # HTTP client with callback support
+│   └── seeder-context.ts       # Variable storage (like Postman environment)
 ├── seeders/
-│   ├── auth.seeder.js          # Authentication (runs first)
-│   └── users.seeder.js         # Example entity seeder
-└── index.js                     # Main orchestrator
+│   ├── domain.seeder.ts        # Domain/client ID (runs first)
+│   ├── auth.seeder.ts          # Authentication (runs second)
+│   └── users.seeder.ts         # Example entity seeder
+└── index.ts                     # Main orchestrator
 ```
 
 ## Installation
@@ -37,12 +41,14 @@ seeder/
 npm install
 ```
 
-2. Configure your API settings in `config/environment.js` or use environment variables:
+2. Configure your API settings in `config/environment.ts` or use environment variables:
 
 ```bash
-export API_BASE_URL=http://localhost:3000/api
-export ADMIN_USERNAME=admin
-export ADMIN_PASSWORD=admin123
+export API_BASE_URL=https://ictivity.test.rakoo.com/api
+export ADMIN_USERNAME=arjan+3@rakoo.com
+export ADMIN_PASSWORD=your-password
+export AUTH_CONTEXT=admin
+export AUTH_PLATFORM=web
 ```
 
 ## Usage
@@ -53,16 +59,22 @@ Run the seeder:
 npm run seed
 ```
 
-Or directly:
-
-```bash
-node index.js
-```
-
-Enable verbose logging:
+With verbose mode:
 
 ```bash
 VERBOSE=true npm run seed
+```
+
+Or during development with watch mode:
+
+```bash
+npm run dev
+```
+
+Build to JavaScript (optional):
+
+```bash
+npm run build
 ```
 
 ## How It Works
@@ -114,10 +126,12 @@ if (context.has('bearerToken')) { ... }
 
 ## Creating New Seeders
 
-1. Create a new file in `seeders/` (e.g., `products.seeder.js`):
+1. Create a new file in `seeders/` (e.g., `products.seeder.ts`):
 
-```javascript
-export default async function productsSeeder(httpClient, context) {
+```typescript
+import type { SeederFunction } from "../types/index.js";
+
+const productsSeeder: SeederFunction = async (httpClient, context) => {
   console.log("\n[Products Seeder] Starting...");
 
   const products = [
@@ -131,15 +145,18 @@ export default async function productsSeeder(httpClient, context) {
       context.set(`product_${product.name}_id`, response.data.id);
     });
   }
-}
+};
+
+export default productsSeeder;
 ```
 
-2. Import and add it to the seeders list in `index.js`:
+2. Import and add it to the seeders list in `index.ts`:
 
-```javascript
+```typescript
 import productsSeeder from "./seeders/products.seeder.js";
 
 const seeders = [
+  { name: "Domain", fn: domainSeeder },
   { name: "Auth", fn: authSeeder },
   { name: "Users", fn: usersSeeder },
   { name: "Products", fn: productsSeeder }, // Add here
@@ -183,50 +200,84 @@ await httpClient.delete("/users/123", {}, (response, context) => {
 
 ## Configuration
 
-Edit `config/environment.js` or set environment variables:
+Edit `config/environment.ts` or set environment variables:
 
-| Variable          | Default                     | Description             |
-| ----------------- | --------------------------- | ----------------------- |
-| `API_BASE_URL`    | `http://localhost:3000/api` | Backend API base URL    |
-| `ADMIN_USERNAME`  | `admin`                     | Login username          |
-| `ADMIN_PASSWORD`  | `admin123`                  | Login password          |
-| `REQUEST_TIMEOUT` | `30000`                     | Request timeout in ms   |
-| `VERBOSE`         | `false`                     | Enable detailed logging |
+| Variable          | Default                               | Description             |
+| ----------------- | ------------------------------------- | ----------------------- |
+| `API_BASE_URL`    | `https://ictivity.test.rakoo.com/api` | Backend API base URL    |
+| `ADMIN_USERNAME`  | `arjan+3@rakoo.com`                   | Login username          |
+| `ADMIN_PASSWORD`  | `AZB_nej!dze1xdb2evg`                 | Login password          |
+| `AUTH_CONTEXT`    | `admin`                               | Authentication context  |
+| `AUTH_PLATFORM`   | `web`                                 | Platform identifier     |
+| `REQUEST_TIMEOUT` | `30000`                               | Request timeout in ms   |
+| `VERBOSE`         | `false`                               | Enable detailed logging |
+
+## TypeScript Benefits
+
+This seeder uses TypeScript for:
+
+- **Type Safety**: Catch errors at compile time
+- **IntelliSense**: Better autocomplete in your IDE
+- **Interfaces**: Clear contracts for data structures
+- **Refactoring**: Safer code changes with type checking
+
+Example type definitions:
+
+```typescript
+interface SeederFunction {
+  (httpClient: HttpClient, context: SeederContext): Promise<void>;
+}
+
+interface User {
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+}
+```
 
 ## Customizing the Auth Seeder
 
-The `auth.seeder.js` includes multiple patterns for extracting tokens. Adjust based on your API:
+The `auth.seeder.ts` uses your specific authentication format:
 
-```javascript
-// Token in response body
-if (response.data.token) {
-  context.set("bearerToken", response.data.token);
-}
+```typescript
+const authRequest: AuthRequest = {
+  clientId: clientId, // From domain seeder
+  context: "admin",
+  password: config.credentials.password,
+  platform: "web",
+  username: config.credentials.username,
+};
 
-// Token in Authorization header
-if (response.headers.authorization) {
+await httpClient.post("/authenticate", authRequest, (response, context) => {
+  // Extract bearer token from Authorization header
   const token = response.headers.authorization.replace("Bearer ", "");
   context.set("bearerToken", token);
-}
-
-// Different key name
-if (response.data.access_token) {
-  context.set("bearerToken", response.data.access_token);
-}
+});
 ```
 
 ## Error Handling
 
 Seeders will stop execution if any seeder fails. To continue on error:
 
-```javascript
+```typescript
 try {
   await httpClient.post("/users", userData);
 } catch (error) {
-  console.error("Error:", error.message);
+  const errorMessage = error instanceof Error ? error.message : "Unknown error";
+  console.error("Error:", errorMessage);
   // Don't re-throw to continue with other records
 }
 ```
+
+## Development
+
+The project uses `tsx` for TypeScript execution without a build step:
+
+- **Development**: `npm run dev` - Watch mode with auto-restart
+- **Run**: `npm run seed` - Execute the seeder
+- **Build**: `npm run build` - Compile to JavaScript (optional)
 
 ## License
 

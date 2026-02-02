@@ -2,23 +2,23 @@
  * Database Seeder - Main Entry Point
  * 
  * This orchestrates the seeding process by running seeders in order.
- * The auth seeder runs first to obtain a bearer token, then other seeders follow.
+ * The domain seeder runs first to get client ID, then auth seeder, then others.
  */
 
 import 'dotenv/config';
 import SeederContext from './lib/seeder-context.js';
 import HttpClient from './lib/http-client.js';
 import config from './config/environment.js';
+import type { SeederDefinition } from './types/index.js';
 
 // Import seeders
 import domainSeeder from './seeders/domain.seeder.js';
 import authSeeder from './seeders/auth.seeder.js';
-// import usersSeeder from './seeders/users.seeder.js';
 
 /**
  * Main seeding function
  */
-async function seed() {
+async function seed(): Promise<void> {
   console.log('='.repeat(60));
   console.log('Database Seeder Starting');
   console.log('='.repeat(60));
@@ -32,13 +32,10 @@ async function seed() {
   
   // Define seeders in execution order
   // Domain seeder runs first to get client ID, then auth seeder, then others
-  const seeders = [
+  const seeders: SeederDefinition[] = [
     { name: 'Domain', fn: domainSeeder },
     { name: 'Auth', fn: authSeeder },
-    // { name: 'Users', fn: usersSeeder },
-    // Add more seeders here as needed
-    // { name: 'Products', fn: productsSeeder },
-    // { name: 'Orders', fn: ordersSeeder },
+
   ];
   
   try {
@@ -51,7 +48,8 @@ async function seed() {
       try {
         await seeder.fn(httpClient, context);
       } catch (error) {
-        console.error(`\n[Error] ${seeder.name} Seeder failed:`, error.message);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error(`\n[Error] ${seeder.name} Seeder failed:`, errorMessage);
         
         // Stop the seeding process if a seeder fails
         throw error;
@@ -78,10 +76,12 @@ async function seed() {
     console.error('\n' + '='.repeat(60));
     console.error('✗ Database Seeding Failed');
     console.error('='.repeat(60));
-    console.error('\nError Details:', error.message);
     
-    if (config.verbose && error.response) {
-      console.error('\nAPI Response:', error.response.data);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('\nError Details:', errorMessage);
+    
+    if (config.verbose && error instanceof Error && 'response' in error) {
+      console.error('\nAPI Response:', (error as any).response?.data);
     }
     
     process.exit(1);

@@ -5,17 +5,21 @@
  * Use set() to store values (like bearer tokens) and get() to retrieve them.
  */
 
-class SeederContext {
+import type { SeederContext as ISeederContext } from '../types/index.js';
+
+class SeederContext implements ISeederContext {
+  private variables: Record<string, any>;
+
   constructor() {
     this.variables = {};
   }
 
   /**
    * Set a variable in the context
-   * @param {string} key - Variable name
-   * @param {any} value - Variable value
+   * @param key - Variable name
+   * @param value - Variable value
    */
-  set(key, value) {
+  set(key: string, value: any): void {
     this.variables[key] = value;
     console.log(`[Context] Set ${key}:`, typeof value === 'string' && value.length > 50 
       ? value.substring(0, 50) + '...' 
@@ -25,27 +29,27 @@ class SeederContext {
 
   /**
    * Get a variable from the context
-   * @param {string} key - Variable name
-   * @returns {any} Variable value or undefined
+   * @param key - Variable name
+   * @returns Variable value or undefined
    */
-  get(key) {
+  get(key: string): any {
     return this.variables[key];
   }
 
   /**
    * Check if a variable exists in the context
-   * @param {string} key - Variable name
-   * @returns {boolean}
+   * @param key - Variable name
+   * @returns True if key exists
    */
-  has(key) {
+  has(key: string): boolean {
     return key in this.variables;
   }
 
   /**
    * Remove a variable from the context
-   * @param {string} key - Variable name
+   * @param key - Variable name
    */
-  unset(key) {
+  unset(key: string): void {
     delete this.variables[key];
     console.log(`[Context] Unset ${key}`);
   }
@@ -53,16 +57,16 @@ class SeederContext {
   /**
    * Clear all variables from the context
    */
-  clear() {
+  clear(): void {
     this.variables = {};
     console.log('[Context] Cleared all variables');
   }
 
   /**
    * Get all variables
-   * @returns {object}
+   * @returns Object containing all variables
    */
-  getAll() {
+  getAll(): Record<string, any> {
     return { ...this.variables };
   }
 }

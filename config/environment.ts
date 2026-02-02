@@ -7,7 +7,9 @@
  * - ADMIN_PASSWORD: Password for authentication
  */
 
-const environment =  {
+import type { SeederConfig } from '../types/index.js';
+
+const environment: SeederConfig = {
   // Base URL for all API requests
   apiBaseUrl: process.env.API_BASE_URL || 'https://ictivity.test.rakoo.com/api',
   
@@ -20,7 +22,7 @@ const environment =  {
   },
   
   // Optional: Add any other configuration here
-  timeout: process.env.REQUEST_TIMEOUT || 30000, // 30 seconds
+  timeout: parseInt(process.env.REQUEST_TIMEOUT || '30000', 10), // 30 seconds
   verbose: process.env.VERBOSE === 'true' || false
 };
 
