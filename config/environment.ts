@@ -11,12 +11,12 @@ import type { SeederConfig } from '../types/index.js';
 
 const environment: SeederConfig = {
   // Base URL for all API requests
-  apiBaseUrl: process.env.API_BASE_URL || 'https://ictivity.test.rakoo.com/api',
+  apiBaseUrl: process.env.API_BASE_URL || 'http://academy.dev.rakoo.com:3000/api',
   
   // Credentials for initial authentication
   credentials: {
-    username: process.env.ADMIN_USERNAME || 'arjan+3@rakoo.com',
-    password: process.env.ADMIN_PASSWORD || 'AZB_nej!dze1xdb2evg',
+    username: process.env.ADMIN_USERNAME || 'superadmin@rakoo.com',
+    password: process.env.ADMIN_PASSWORD || 'password',
     context: process.env.AUTH_CONTEXT || 'admin',
     platform: process.env.AUTH_PLATFORM || 'web'
   },
